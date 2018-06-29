@@ -45,22 +45,26 @@ model =
 
 -- UPDATE
 
+sendValueChanged : Model -> (Model, Cmd msg)
+sendValueChanged value =
+  (value, valueChanged (value))
+
 type Msg = Increment | Decrement | Reset | Set Model | Noop
 
 update : Msg -> Model -> (Model, Cmd msg)
 update msg model =
   case msg of
     Increment ->
-      (model + 1, valueChanged (model + 1))
+      sendValueChanged (model + 1)
 
     Decrement ->
-      (model - 1, valueChanged (model - 1))
+      sendValueChanged (model - 1)
 
     Reset ->
-      (0, valueChanged 0)
+      sendValueChanged 0
 
     Set value ->
-      (value, valueChanged value)
+      sendValueChanged value
 
     Noop ->
       (model, Cmd.none)
