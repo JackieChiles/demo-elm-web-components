@@ -1,23 +1,57 @@
-class NumericStepper extends HTMLElement {
+class ElmWebComponent extends HTMLElement {
+    /*
     static get observedAttributes() {
-        return ['value'];
-    }
+        console.log('In observedAttributes');
+        if (this.moduleName) {
+            const module = Elm[this.moduleName];
+            const ports = module.ports;
 
-    get value() {
-  	return this.getAttribute('value');
+            if (ports) {
+                return Object.keys(ports).reduce((attributes, port) => {
+                    const attribute = port.split('_')[0];
+
+                    if (attribute && !attributes.indexOf(attribute) > -1) {
+                        attributes.push(attribute);
+                    }
+
+                    return attributes;
+                }, []);
+            }                      
+        }
+
+        return [];
     }
-    
-    set value(val) {
-  	this.setAttribute('value', val);
-        this.elm.ports.set.send(parseInt(this.value, 10));
-    }
-    
+*/
+
     constructor() {
-  	super();
+        super();
         const shadowRoot = this.attachShadow({ mode: 'open' });
-        this.elm = Elm.NumericStepper.embed(shadowRoot);
-        this.elm.ports.valueChanged.subscribe(val => this.setAttribute('value', val));
+        const module = Elm[this.moduleName];
+
+        if (!module) {
+            return;
+        }
+
+        this.elm = module.embed(shadowRoot);
+
+        Object.keys(this.elm.ports).forEach(port => {
+            const segments = port.split('_');
+
+            if (segments.length !== 2) {
+                return;
+            }
+
+            if (segments[1] === 'subscribe') {
+                this.elm.ports[port].subscribe(value => this.setAttribute(segments[0], value));
+            }
+        });
     }
 }
 
-window.customElements.define('numeric-stepper', NumericStepper);
+Object.keys(Elm).forEach(module => {
+    window.customElements.define(`genesys-${module.toLowerCase()}`, class extends ElmWebComponent {
+        get moduleName() {
+            return module;
+        }
+    }); 
+});

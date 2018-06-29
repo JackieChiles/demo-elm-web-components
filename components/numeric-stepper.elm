@@ -15,14 +15,14 @@ main =
 
 -- PORTS
 
-port valueChanged : Model -> Cmd msg
-port set : (Value -> msg) -> Sub msg
+port value_subscribe : Model -> Cmd msg
+port value_send : (Value -> msg) -> Sub msg
 
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  set (decodeValue)
+  value_send (decodeValue)
 
 decodeValue val =
   let
@@ -47,7 +47,7 @@ model =
 
 sendValueChanged : Model -> (Model, Cmd msg)
 sendValueChanged value =
-  (value, valueChanged (value))
+  (value, value_subscribe (value))
 
 type Msg = Increment | Decrement | Reset | Set Model | Noop
 
