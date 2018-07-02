@@ -1,4 +1,4 @@
-port module NumericStepper exposing (..)
+port module Genesys.NumericStepper exposing (..)
 
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)

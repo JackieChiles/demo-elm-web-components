@@ -25,8 +25,13 @@ class ElmWebComponent extends HTMLElement {
 
     constructor() {
         super();
+
+        if (!Elm || !Elm.Genesys) {
+            return;
+        }
+
         const shadowRoot = this.attachShadow({ mode: 'open' });
-        const module = Elm[this.moduleName];
+        const module = Elm.Genesys[this.moduleName];
 
         if (!module) {
             return;
@@ -48,7 +53,7 @@ class ElmWebComponent extends HTMLElement {
     }
 }
 
-Object.keys(Elm).forEach(module => {
+Object.keys(Elm.Genesys).forEach(module => {
     window.customElements.define(`genesys-${module.toLowerCase()}`, class extends ElmWebComponent {
         get moduleName() {
             return module;
