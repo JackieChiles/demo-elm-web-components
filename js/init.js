@@ -1,27 +1,8 @@
 class ElmWebComponent extends HTMLElement {
-    /*
     static get observedAttributes() {
-        console.log('In observedAttributes');
-        if (this.moduleName) {
-            const module = Elm[this.moduleName];
-            const ports = module.ports;
-
-            if (ports) {
-                return Object.keys(ports).reduce((attributes, port) => {
-                    const attribute = port.split('_')[0];
-
-                    if (attribute && !attributes.indexOf(attribute) > -1) {
-                        attributes.push(attribute);
-                    }
-
-                    return attributes;
-                }, []);
-            }                      
-        }
-
+        // TODO find a way to build this static property from port names
         return [];
     }
-*/
 
     constructor() {
         super();
@@ -50,6 +31,20 @@ class ElmWebComponent extends HTMLElement {
                 this.elm.ports[port].subscribe(value => this.setAttribute(segments[0], value));
             }
         });
+    }
+
+    attributeChangedCallback(attrName, oldVal, newVal) {
+        if (!this.elm || !this.elm.ports) {
+            return;
+        }
+
+        const port = this.elm.ports[`${attrName}_send`];
+
+        if (!port) {
+            return;
+        }
+
+        port.send(newVal);
     }
 }
 
