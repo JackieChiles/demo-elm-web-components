@@ -21,14 +21,18 @@ class ElmWebComponent extends HTMLElement {
         this.elm = module.embed(shadowRoot);
 
         Object.keys(this.elm.ports).forEach(port => {
-            const segments = port.split('_');
+            const [name, action] = port.split('_');
 
-            if (segments.length !== 2) {
+            if (!name || !action) {
                 return;
             }
 
-            if (segments[1] === 'subscribe') {
-                this.elm.ports[port].subscribe(value => this.setAttribute(segments[0], value));
+            if (action === 'subscribe') {
+                this.elm.ports[port].subscribe(value => this.setAttribute(name, value));
+            } else if (action === 'send') {
+                Object.defineProperty(this, name, {
+                    set: value => this.setAttribute(name, value)
+                });
             }
         });
     }
@@ -40,7 +44,7 @@ class ElmWebComponent extends HTMLElement {
 
         const port = this.elm.ports[`${attrName}_send`];
 
-        if (!port) {
+        if (!port || oldVal === newVal) {
             return;
         }
 
@@ -48,10 +52,36 @@ class ElmWebComponent extends HTMLElement {
     }
 }
 
-Object.keys(Elm.Genesys).forEach(module => {
-    window.customElements.define(`genesys-${module.toLowerCase()}`, class extends ElmWebComponent {
+Object.keys(Elm.Genesys).forEach(moduleName => {
+    if (!Elm || !Elm.Genesys) {
+        return;
+    }
+
+    // Embed Elm module in temporary element to get port names and build observedAttributes
+    const observedAttributes = [];
+    const module = Elm.Genesys[moduleName];
+    const tempDiv = document.createElement('div');
+    const tempElmEmbed = module.embed(tempDiv);
+
+    Object.keys(tempElmEmbed.ports).forEach(port => {
+        const [name, action] = port.split('_');
+
+        if (!name || !action) {
+            return;
+        }
+
+        if (action === 'send') {
+            observedAttributes.push(name);
+        }
+    });
+
+    window.customElements.define(`genesys-${moduleName.toLowerCase()}`, class extends ElmWebComponent {
+        static get observedAttributes() {
+            return observedAttributes;
+        }
+
         get moduleName() {
-            return module;
+            return moduleName;
         }
     }); 
 });

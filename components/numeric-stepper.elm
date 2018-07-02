@@ -4,6 +4,7 @@ import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 import Json.Encode exposing (Value)
 import Json.Decode as Decode
+import String exposing (toInt)
 
 main =
   Html.program
@@ -22,16 +23,20 @@ port value_send : (Value -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  value_send (decodeValue)
+  value_send (valueToInt)
 
-decodeValue val =
+valueToInt str =
   let
     result =
-      Decode.decodeValue Decode.int val
+      Decode.decodeValue Decode.string str
   in
     case result of
-      Ok int ->
-        Set int
+      Ok str ->
+        case toInt str of
+          Ok val ->
+            Set val
+          Err _ ->
+            Noop
       Err _ ->
         Noop
 
