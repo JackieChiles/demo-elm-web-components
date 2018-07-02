@@ -1,9 +1,4 @@
 class ElmWebComponent extends HTMLElement {
-    static get observedAttributes() {
-        // TODO find a way to build this static property from port names
-        return [];
-    }
-
     constructor() {
         super();
 
